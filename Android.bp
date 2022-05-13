@@ -200,6 +200,8 @@ cc_test {
 cc_test {
     name: "linkerconfig_contents_fulltest",
     defaults: [ "linkerconfig_test_defaults" ],
+    // TODO(b/231993627): Reenable isolated:true by deleting the explicit disable below
+    isolated: false,
     local_include_dirs: [
         "contents/tests/configuration/include",
     ],
