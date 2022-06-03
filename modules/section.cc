@@ -133,11 +133,13 @@ Result<void> Section::Resolve(const BaseContext& ctx,
           return ctx.BuildApexNamespace(it->second, false);
         });
       } else if (auto it = lib_providers.find(lib); it != lib_providers.end()) {
-        // Alias is expanded to <shared_libs>.
-        // For example, ":vndk" is expanded to the list of VNDK-Core/VNDK-Sp libraries
-        ns.GetLink(it->second.ns).AddSharedLib(it->second.shared_libs);
-        // Add a new namespace for the alias
-        add_namespace(it->second.ns, it->second.ns_builder);
+        for (const auto& provider : it->second) {
+          // Alias is expanded to <shared_libs>.
+          // For example, ":vndk" is expanded to the list of VNDK-Core/VNDK-Sp libraries
+          ns.GetLink(provider.ns).AddSharedLib(provider.shared_libs);
+          // Add a new namespace for the alias
+          add_namespace(provider.ns, provider.ns_builder);
+        }
       } else if (ctx.IsStrictMode()) {
         return Errorf(
             "not found: {} is required by {} in [{}]", lib, ns.GetName(), name_);
