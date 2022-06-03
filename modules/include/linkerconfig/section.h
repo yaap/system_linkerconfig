@@ -45,7 +45,8 @@ struct LibProvider {
   std::vector<std::string> shared_libs;
 };
 
-using LibProviders = std::unordered_map<std::string, LibProvider>;
+// LibProviders maps "alias" to one or more LibProviders.
+using LibProviders = std::unordered_map<std::string, std::vector<LibProvider>>;
 
 class Section {
  public:
