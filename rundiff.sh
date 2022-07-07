@@ -108,6 +108,10 @@ function run_linkerconfig_to {
   mkdir -p $1/legacy
   linkerconfig -r $TMP_ROOT -t $1/legacy
 
+  # skip prepare_root (reuse the previous setup)
+  mkdir -p $1/gen-only-a-single-apex
+  linkerconfig -r $TMP_ROOT --apex com.vendor.service2 -t $1/gen-only-a-single-apex
+
   # clean up testdata root
   rm -rf $TMP_ROOT
 }
