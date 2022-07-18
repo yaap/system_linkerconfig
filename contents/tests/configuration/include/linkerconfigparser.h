@@ -22,8 +22,8 @@
 #include "modules.h"
 
 namespace {
-constexpr const char* kSectionNameRegex = "\\[\\s*(\\w+)\\s*\\]";
-constexpr const char* kDirRegex = "dir\\.(\\w+)\\s*=\\s*([\\w_\\-/]+)";
+constexpr const char* kSectionNameRegex = "\\[\\s*([\\w.]+)\\s*\\]";
+constexpr const char* kDirRegex = "dir\\.([\\w.]+)\\s*=\\s*([\\w_.\\-/]+)";
 constexpr const char* kNamespaceBaseRegex =
     "namespace\\.(\\w+)\\.([^\\s=]+)\\s*(=|\\+=)\\s*([^\\s]+)";
 constexpr const char* kAdditionalNamespacesRegex =
