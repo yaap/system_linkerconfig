@@ -60,6 +60,19 @@ void Section::WriteConfig(ConfigWriter& writer) {
   }
 }
 
+static bool ShouldFailOnMissingDeps(const BaseContext& ctx,
+                                    const Namespace& ns) {
+  if (!ctx.IsStrictMode()) {
+    return false;
+  }
+  // When generating for a target apex, "--strict" is applied to only the namespace
+  // for the apex to avoid failing due to missing deps in other namespaces
+  if (!ctx.GetTargetApex().empty()) {
+    return ns.GetName() == "default" || ns.GetName() == ctx.GetTargetApex();
+  }
+  return true;
+}
+
 // Resolve() resolves require/provide constraints between namespaces.
 // When foo.AddProvides({"libfoo.so"}) and bar.AddRequires({"libfoo.so"}),
 // then Resolve() creates a linke between foo and bar:
@@ -141,10 +154,9 @@ void Section::Resolve(const BaseContext& ctx,
           // Add a new namespace for the alias
           add_namespace(provider.ns, provider.ns_builder);
         }
-      } else if (ctx.IsStrictMode()) {
-        const auto msg = fmt::format(
+      } else if (ShouldFailOnMissingDeps(ctx, ns)) {
+        LOG(FATAL) << fmt::format(
             "not found: {} is required by {} in [{}]", lib, ns.GetName(), name_);
-        LOG(FATAL) << msg;
       }
     }
     iter++;
