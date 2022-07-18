@@ -209,6 +209,7 @@ cc_test {
         "contents/tests/configuration/*_test.cc",
     ],
     static_libs: [
+        "libgmock",
         "linkerconfig_modules",
         "linkerconfig_contents",
     ],
