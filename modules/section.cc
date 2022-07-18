@@ -68,18 +68,19 @@ void Section::WriteConfig(ConfigWriter& writer) {
 // When a referenced lib is not provided by existing namespaces,
 // it searches the lib in available apexes <apex_providers>
 // and available aliases <lib_providers>, If found, new namespace is added.
-Result<void> Section::Resolve(const BaseContext& ctx,
-                              const LibProviders& lib_providers) {
+void Section::Resolve(const BaseContext& ctx,
+                      const LibProviders& lib_providers) {
   // libs provided by existing namespaces
   std::unordered_map<std::string, std::string> providers;
   for (auto& ns : namespaces_) {
     for (const auto& lib : ns.GetProvides()) {
       if (auto iter = providers.find(lib); iter != providers.end()) {
-        return Errorf("duplicate: {} is provided by {} and {} in [{}]",
-                      lib,
-                      iter->second,
-                      ns.GetName(),
-                      name_);
+        LOG(FATAL) << fmt::format(
+            "duplicate: {} is provided by {} and {} in [{}]",
+            lib,
+            iter->second,
+            ns.GetName(),
+            name_);
       }
       providers[lib] = ns.GetName();
     }
@@ -141,14 +142,13 @@ Result<void> Section::Resolve(const BaseContext& ctx,
           add_namespace(provider.ns, provider.ns_builder);
         }
       } else if (ctx.IsStrictMode()) {
-        return Errorf(
+        const auto msg = fmt::format(
             "not found: {} is required by {} in [{}]", lib, ns.GetName(), name_);
+        LOG(FATAL) << msg;
       }
     }
     iter++;
   } while (iter != namespaces_.end());
-
-  return {};
 }
 
 Namespace* Section::GetNamespace(const std::string& namespace_name) {

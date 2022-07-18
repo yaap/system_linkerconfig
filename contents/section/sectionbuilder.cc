@@ -58,9 +58,7 @@ Section BuildSection(const Context& ctx, const std::string& name,
 
   // resolve provide/require constraints
   Section section(std::move(name), std::move(namespaces));
-  if (auto res = section.Resolve(ctx, providers); !res.ok()) {
-    LOG(ERROR) << res.error();
-  }
+  section.Resolve(ctx, providers);
 
   AddStandardSystemLinks(ctx, &section);
   return section;
