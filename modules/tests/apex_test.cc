@@ -103,8 +103,7 @@ TEST(apex_namespace, resolve_between_apex_namespaces) {
   namespaces.push_back(std::move(bar));
   Section section("section", std::move(namespaces));
 
-  auto result = section.Resolve(ctx);
-  ASSERT_RESULT_OK(result);
+  section.Resolve(ctx);
 
   // See if two namespaces are linked correctly
   ASSERT_THAT(section.GetNamespace("foo")->GetLink("bar").GetSharedLibs(),
