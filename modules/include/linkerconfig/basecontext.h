@@ -38,6 +38,9 @@ class BaseContext {
   void SetStrictMode(bool strict);
   bool IsStrictMode() const;
 
+  void SetTargetApex(const std::string& target_apex);
+  const std::string& GetTargetApex() const;
+
   virtual Namespace BuildApexNamespace(const ApexInfo& apex_info,
                                        bool visible) const;
 
@@ -55,6 +58,7 @@ class BaseContext {
 
  private:
   bool strict_;
+  std::string target_apex_;
 
   // Available APEX Modules which contains binary and/or library
   std::vector<ApexInfo> apex_modules_;
