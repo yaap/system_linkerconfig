@@ -18,6 +18,7 @@
 
 #include <android-base/file.h>
 #include <apex_manifest.pb.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <vector>
 
@@ -26,7 +27,10 @@
 #include "linkerconfig/configwriter.h"
 #include "mockenv.h"
 
+using android::linkerconfig::contents::Context;
+using android::linkerconfig::contents::CreateApexConfiguration;
 using android::linkerconfig::modules::ApexInfo;
+using ::testing::Contains;
 
 namespace {
 struct ApexConfigTest : ::testing::Test {
@@ -131,13 +135,13 @@ TEST_F(ApexConfigTest, vendor_apex_without_use_vndk_as_stable) {
 
   // Vendor apex requires :vndk
   auto vendor_apex = PrepareApex(
-      "vendor_apex", {"libapexprovide.so"}, {"libvendorprovide.so"});
+      "com.android.vendor", {"libapexprovide.so"}, {"libvendorprovide.so"});
   vendor_apex.original_path = "/vendor/apex/com.android.vendor";
   ctx.AddApexModule(vendor_apex);
 
   auto config = CreateApexConfiguration(ctx, vendor_apex);
 
-  auto* section = config.GetSection("vendor_apex");
+  auto* section = config.GetSection("com.android.vendor");
   ASSERT_TRUE(section);
 
   // vendor apex should be able to load vndk libraries
@@ -147,4 +151,40 @@ TEST_F(ApexConfigTest, vendor_apex_without_use_vndk_as_stable) {
   android::linkerconfig::modules::ConfigWriter config_writer;
   config.WriteConfig(config_writer);
   VerifyConfiguration(config_writer.ToString());
+}
+
+// [apex]com.android.target --(require)--> missing.so
+TEST_F(ApexConfigTest, StrictModeRejects_MissingRequiredLibs) {
+  const std::string apex_name = "com.android.target";
+  Context ctx = GenerateContextWithVndk();
+  ctx.SetStrictMode(true);
+  ctx.SetTargetApex(apex_name);
+  auto apex = PrepareApex(apex_name, {}, /*required_libs=*/{"missing.so"});
+  ASSERT_EXIT(CreateApexConfiguration(ctx, apex),
+              testing::KilledBySignal(SIGABRT),
+#ifndef __ANDROID__
+              "not found:.*missing\\.so"
+#else
+              ""
+#endif
+  );
+}
+
+// [apex]com.android.target                          [apex]com.android.other
+//                  `--(require)--> other.so <--(provide)--'  |
+//                                                            `-(require)--> missing.so
+TEST_F(ApexConfigTest, StrictModeAccepts_MissingRequiredLibsInOtherApex) {
+  const std::string apex_name = "com.android.target";
+  Context ctx = GenerateContextWithVndk();
+  ctx.SetStrictMode(true);
+  ctx.SetTargetApex(apex_name);
+  ctx.AddApexModule(PrepareApex("com.android.other",
+                                /*provide_libs=*/{"other.so"},
+                                /*required_libs=*/{"missing.so"}));
+  auto apex = PrepareApex(apex_name, {}, /*required_libs=*/{"other.so"});
+  auto config = CreateApexConfiguration(ctx, apex);
+  auto section = config.GetSection("com.android.target");
+  auto ns = section->GetNamespace("default");
+  ASSERT_THAT(ns->GetLink("com_android_other").GetSharedLibs(),
+              Contains("other.so"));
 }

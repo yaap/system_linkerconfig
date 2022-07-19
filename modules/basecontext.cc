@@ -38,6 +38,14 @@ bool BaseContext::IsStrictMode() const {
   return strict_;
 }
 
+void BaseContext::SetTargetApex(const std::string& target_apex) {
+  target_apex_ = target_apex;
+}
+
+const std::string& BaseContext::GetTargetApex() const {
+  return target_apex_;
+}
+
 Namespace BaseContext::BuildApexNamespace(const ApexInfo& apex_info,
                                           bool visible) const {
   Namespace ns(apex_info.namespace_name,

@@ -61,8 +61,7 @@ class Section {
   std::vector<std::string> GetBinaryPaths();
   std::string GetName();
 
-  android::base::Result<void> Resolve(const BaseContext& ctx,
-                                      const LibProviders& lib_providers = {});
+  void Resolve(const BaseContext& ctx, const LibProviders& lib_providers = {});
   Namespace* GetNamespace(const std::string& namespace_name);
 
   template <class _Function>

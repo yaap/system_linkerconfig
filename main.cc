@@ -195,6 +195,9 @@ Context GetContext(ProgramArgs args) {
   if (args.strict) {
     ctx.SetStrictMode(true);
   }
+  if (!args.target_apex.empty()) {
+    ctx.SetTargetApex(args.target_apex);
+  }
   if (!args.is_recovery) {
     auto apex_list = android::linkerconfig::modules::ScanActiveApexes(args.root);
     if (apex_list.ok()) {
