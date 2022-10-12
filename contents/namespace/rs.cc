@@ -21,6 +21,8 @@
 
 #include "linkerconfig/namespacebuilder.h"
 
+#include <android-base/strings.h>
+
 using android::linkerconfig::modules::Namespace;
 
 namespace android {
@@ -42,13 +44,14 @@ Namespace BuildRsNamespace([[maybe_unused]] const Context& ctx) {
   ns.AddPermittedPath("/system/vendor/${LIB}");
   ns.AddPermittedPath("/data");
 
+  // Add link to system to keep the original sequence of linked namespaces
+  ns.GetLink(ctx.GetSystemNamespaceName());
+
+  ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
   // Private LLNDK libs (e.g. libft2.so) are exceptionally allowed to this
   // namespace because RS framework libs are using them.
   ns.GetLink(ctx.GetSystemNamespaceName())
-      .AddSharedLib({Var("LLNDK_LIBRARIES_VENDOR"),
-                     Var("PRIVATE_LLNDK_LIBRARIES_VENDOR", "")});
-
-  ns.AddRequires(std::vector{"libneuralnetworks.so"});
+      .AddSharedLib(Var("PRIVATE_LLNDK_LIBRARIES_VENDOR", ""));
 
   return ns;
 }

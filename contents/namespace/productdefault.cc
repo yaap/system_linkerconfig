@@ -18,6 +18,9 @@
 // from /vendor/bin/*).
 
 #include "linkerconfig/environment.h"
+
+#include <android-base/strings.h>
+
 #include "linkerconfig/namespacebuilder.h"
 
 using android::linkerconfig::modules::Namespace;
@@ -36,8 +39,7 @@ Namespace BuildProductNamespace(const Context& ctx, const std::string& name) {
   ns.AddPermittedPath(Var("PRODUCT", "product"));
 
   ns.GetLink(ctx.GetSystemNamespaceName())
-      .AddSharedLib(
-          {Var("LLNDK_LIBRARIES_PRODUCT"), Var("SANITIZER_DEFAULT_PRODUCT")});
+      .AddSharedLib(Var("SANITIZER_DEFAULT_PRODUCT"));
   if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
     ns.GetLink("vndk_product")
         .AddSharedLib(Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"));
@@ -49,9 +51,7 @@ Namespace BuildProductNamespace(const Context& ctx, const std::string& name) {
           .AddSharedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));
     }
   }
-  ns.AddRequires(std::vector{
-      "libneuralnetworks.so",
-  });
+  ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_PRODUCT", ""), ":"));
   ns.AddRequires(ctx.GetProductRequireLibs());
   ns.AddProvides(ctx.GetProductProvideLibs());
   return ns;
