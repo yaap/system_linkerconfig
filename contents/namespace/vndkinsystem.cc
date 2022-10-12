@@ -53,19 +53,10 @@ Namespace BuildVndkInSystemNamespace([[maybe_unused]] const Context& ctx) {
     ns.AddAllowedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));
   }
 
-  // Add link to system to keep the original sequence of linked namespaces
-  ns.GetLink(ctx.GetSystemNamespaceName());
-
-  // The links here should be identical to that of the 'vndk' namespace for the
-  // [vendor] section, with the following exceptions:
-  //   1. 'vndk_in_system' needs to be freely linked back to 'vndk'.
-  //   2. 'vndk_in_system' does not need to link to 'default', as any library that
-  //      requires anything vendor would not be a vndk_in_system library.
-  if (ctx.IsProductSection()) {
-    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_PRODUCT", ""), ":"));
-  } else {
-    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
-  }
+  AddLlndkLibraries(ctx,
+                    &ns,
+                    ctx.IsProductSection() ? VndkUserPartition::Product
+                                           : VndkUserPartition::Vendor);
   ns.GetLink("vndk").AllowAllSharedLibs();
 
   return ns;
