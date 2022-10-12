@@ -100,16 +100,7 @@ Namespace BuildVndkNamespace([[maybe_unused]] const Context& ctx,
     ns.AddSearchPath(lib_path);
   }
 
-  // Add link to system to keep the original sequence of linked namespaces
-  ns.GetLink(ctx.GetSystemNamespaceName());
-
-  // For the non-system section, the links should be identical to that of the
-  // 'vndk_in_system' namespace, except the links to 'default' and 'vndk_in_system'.
-  if (vndk_user == VndkUserPartition::Product) {
-    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_PRODUCT", ""), ":"));
-  } else {
-    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
-  }
+  AddLlndkLibraries(ctx, &ns, vndk_user);
 
   if (ctx.IsProductSection() || ctx.IsVendorSection()) {
     if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {

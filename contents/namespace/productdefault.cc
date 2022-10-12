@@ -38,6 +38,7 @@ Namespace BuildProductNamespace(const Context& ctx, const std::string& name) {
   ns.AddSearchPath(Var("PRODUCT", "product") + "/${LIB}");
   ns.AddPermittedPath(Var("PRODUCT", "product"));
 
+  AddLlndkLibraries(ctx, &ns, VndkUserPartition::Product);
   ns.GetLink(ctx.GetSystemNamespaceName())
       .AddSharedLib(Var("SANITIZER_DEFAULT_PRODUCT"));
   if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
@@ -51,7 +52,6 @@ Namespace BuildProductNamespace(const Context& ctx, const std::string& name) {
           .AddSharedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));
     }
   }
-  ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_PRODUCT", ""), ":"));
   ns.AddRequires(ctx.GetProductRequireLibs());
   ns.AddProvides(ctx.GetProductProvideLibs());
   return ns;

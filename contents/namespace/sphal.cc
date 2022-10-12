@@ -69,7 +69,7 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
 
   if (ctx.IsApexBinaryConfig()) {
     if (ctx.IsVndkAvailable()) {
-      ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
+      AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
       ns.AddRequires(std::vector{":vndksp"});
     }
   } else {
@@ -80,9 +80,7 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
     if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
       ns.GetLink("rs").AddSharedLib("libRS_internal.so");
     }
-    // Add link first to keep the original sequence of linked namespaces
-    ns.GetLink(ctx.GetSystemNamespaceName());
-    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
+    AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
     ns.GetLink("vndk").AddSharedLib(
         Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR", ""));
   }

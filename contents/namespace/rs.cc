@@ -44,10 +44,7 @@ Namespace BuildRsNamespace([[maybe_unused]] const Context& ctx) {
   ns.AddPermittedPath("/system/vendor/${LIB}");
   ns.AddPermittedPath("/data");
 
-  // Add link to system to keep the original sequence of linked namespaces
-  ns.GetLink(ctx.GetSystemNamespaceName());
-
-  ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
+  AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
   // Private LLNDK libs (e.g. libft2.so) are exceptionally allowed to this
   // namespace because RS framework libs are using them.
   ns.GetLink(ctx.GetSystemNamespaceName())
