@@ -17,6 +17,9 @@
 // This namespace is exclusively for vndk-sp libs.
 
 #include "linkerconfig/environment.h"
+
+#include <android-base/strings.h>
+
 #include "linkerconfig/namespacebuilder.h"
 
 using android::linkerconfig::modules::Namespace;
@@ -97,14 +100,15 @@ Namespace BuildVndkNamespace([[maybe_unused]] const Context& ctx,
     ns.AddSearchPath(lib_path);
   }
 
+  // Add link to system to keep the original sequence of linked namespaces
+  ns.GetLink(ctx.GetSystemNamespaceName());
+
   // For the non-system section, the links should be identical to that of the
   // 'vndk_in_system' namespace, except the links to 'default' and 'vndk_in_system'.
   if (vndk_user == VndkUserPartition::Product) {
-    ns.GetLink(ctx.GetSystemNamespaceName())
-        .AddSharedLib({Var("LLNDK_LIBRARIES_PRODUCT")});
+    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_PRODUCT", ""), ":"));
   } else {
-    ns.GetLink(ctx.GetSystemNamespaceName())
-        .AddSharedLib({Var("LLNDK_LIBRARIES_VENDOR")});
+    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
   }
 
   if (ctx.IsProductSection() || ctx.IsVendorSection()) {
@@ -113,8 +117,6 @@ Namespace BuildVndkNamespace([[maybe_unused]] const Context& ctx,
           .AddSharedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));
     }
   }
-
-  ns.AddRequires(std::vector{"libneuralnetworks.so"});
 
   return ns;
 }
