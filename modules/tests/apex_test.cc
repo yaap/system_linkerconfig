@@ -224,3 +224,21 @@ TEST_F(ApexTest, validate_path) {
   ASSERT_TRUE(apexes.ok()) << "Valid path with ${LIB} should be accepted. : "
                            << apexes.error();
 }
+
+TEST_F(ApexTest, skip_sharedlibs_apex) {
+  PrepareApex("foo", {}, {}, {});
+  WriteFile("/apex/apex-info-list.xml", R"(<apex-info-list>
+    <apex-info moduleName="foo"
+      preinstalledModulePath="/system/apex/foo.apex"
+      modulePath="/data/apex/active/foo.apex"
+      isActive="true" />
+    <apex-info moduleName="sharedlibs"
+      preinstalledModulePath="/system/apex/sharedlibs.apex"
+      modulePath="/data/apex/active/sharedlibs.apex"
+      provideSharedApexLibs="true"
+      isActive="true" />
+  </apex-info-list>)");
+  auto apexes = ScanActiveApexes(root);
+  ASSERT_TRUE(apexes.ok()) << apexes.error();
+  ASSERT_EQ(apexes->find("sharedlibs"), apexes->end());
+}
