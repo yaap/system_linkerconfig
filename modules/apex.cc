@@ -238,8 +238,14 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
 
     const std::string public_libraries_file =
         root + "/system/etc/public.libraries.txt";
-    auto public_libraries = ReadPublicLibraries(public_libraries_file);
-    if (public_libraries.ok()) {
+    // Do not fail when public.libraries.txt is missing for minimal Android
+    // environment with no ART.
+    if (PathExists(public_libraries_file)) {
+      auto public_libraries = ReadPublicLibraries(public_libraries_file);
+      if (!public_libraries.ok()) {
+        return Error() << "Can't read " << public_libraries_file << ": "
+                       << public_libraries.error();
+      }
       for (auto& [name, apex] : apexes) {
         // Only system apexes can provide public libraries.
         if (!apex.InSystem()) {
@@ -247,11 +253,6 @@ Result<std::map<std::string, ApexInfo>> ScanActiveApexes(const std::string& root
         }
         apex.public_libs = Intersect(apex.provide_libs, *public_libraries);
       }
-    } else {
-      // Do not fail when public.libraries.txt is missing for minimal Android
-      // environment with no ART.
-      LOG(WARNING) << "Can't read " << public_libraries_file << ": "
-                   << public_libraries.error();
     }
   }
 
