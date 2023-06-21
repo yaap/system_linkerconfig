@@ -15,6 +15,7 @@
  */
 #include "linkerconfig/stringutil.h"
 
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -32,17 +33,19 @@ std::string TrimPrefix(const std::string& s, const std::string& prefix) {
 
 // merge a list of libs into a single value (concat with ":")
 std::string MergeLibs(const std::vector<std::string>& libs) {
-  std::unordered_set<std::string> seen;
+  std::unordered_set<std::string_view> seen;
   std::string out;
   bool first = true;
   for (const auto& part : libs) {
-    std::string lib;
     const char* part_str = part.c_str();
     const char* part_end = part.c_str() + part.size();
     while (part_str != part_end) {
       const void* end = memchr(part_str, ':', part_end - part_str);
       const char* end_str = end ? static_cast<const char*>(end) : part_end;
-      lib.assign(part_str, end_str - part_str);
+      std::string_view lib(part_str, end_str - part_str);
+      static_assert(
+          std::is_const_v<typeof(libs)>,
+          "libs needs to be const so we can use a string_view in seen");
       if (!lib.empty() && seen.insert(lib).second) {  // for a new lib
         if (!first) {
           out += ':';
