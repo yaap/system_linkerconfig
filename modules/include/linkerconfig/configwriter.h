@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -25,14 +24,17 @@ namespace modules {
 
 class ConfigWriter {
  public:
+  ConfigWriter() noexcept;
   void WriteVars(const std::string& var, const std::vector<std::string>& values);
+  void WriteVars(const std::string& var, const std::vector<std::string>& values,
+                 const std::string& suffix);
   // Print `{var} = {value}` if value is not empty
   void WriteVar(const std::string& var, const std::string& value);
   void WriteLine(const std::string& line);
   std::string ToString();
 
  private:
-  std::stringstream content_;
+  std::string content_;
 };
 
 }  // namespace modules
