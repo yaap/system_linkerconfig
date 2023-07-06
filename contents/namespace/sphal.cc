@@ -26,6 +26,8 @@
 
 #include "linkerconfig/namespacebuilder.h"
 
+#include "linkerconfig/environment.h"
+
 #include <android-base/strings.h>
 
 using android::linkerconfig::modules::Namespace;
@@ -81,8 +83,10 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
       ns.GetLink("rs").AddSharedLib("libRS_internal.so");
     }
     AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
-    ns.GetLink("vndk").AddSharedLib(
-        Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR", ""));
+    if (!android::linkerconfig::modules::IsVndkDeprecated()) {
+      ns.GetLink("vndk").AddSharedLib(
+          Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR", ""));
+    }
   }
 
   return ns;

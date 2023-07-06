@@ -60,6 +60,7 @@ const static struct option program_options[] = {
     {"root", required_argument, 0, 'r'},
     {"vndk", required_argument, 0, 'v'},
     {"product_vndk", required_argument, 0, 'p'},
+    {"deprecate_vndk", no_argument, 0, 'd'},
     {"recovery", no_argument, 0, 'y'},
 #endif
     {"help", no_argument, 0, 'h'},
@@ -73,6 +74,7 @@ struct ProgramArgs {
   std::string vndk_version;
   std::string product_vndk_version;
   bool is_recovery;
+  bool deprecate_vndk;
 };
 
 [[noreturn]] void PrintUsage(int status = EXIT_SUCCESS) {
@@ -83,6 +85,7 @@ struct ProgramArgs {
                " --root <root dir>"
                " --vndk <vndk version>"
                " --product_vndk <product vndk version>"
+               " --deprecate_vndk"
                " --recovery"
 #endif
                " [--help]"
@@ -121,6 +124,9 @@ bool ParseArgs(int argc, char* argv[], ProgramArgs* args) {
       case 'p':
         args->product_vndk_version = optarg;
         break;
+      case 'd':
+        args->deprecate_vndk = true;
+        break;
       case 'y':
         args->is_recovery = true;
         break;
@@ -147,6 +153,10 @@ void LoadVariables(const ProgramArgs& args) {
                                                       args.vndk_version);
   android::linkerconfig::modules::Variables::AddValue(
       "ro.product.vndk.version", args.product_vndk_version);
+  
+  if (args.deprecate_vndk) {
+    android::linkerconfig::modules::Variables::AddValue("ro.vndk.deprecate", "true");
+  }
 #endif
   if (!args.is_recovery) {
     android::linkerconfig::generator::LoadVariables(args.root);

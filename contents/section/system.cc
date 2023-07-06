@@ -37,11 +37,13 @@ Section BuildSystemSection(Context& ctx) {
   if (ctx.IsVndkAvailable()) {
     namespaces.emplace_back(BuildSphalNamespace(ctx));
     namespaces.emplace_back(BuildRsNamespace(ctx));
-    namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
-    if (android::linkerconfig::modules::IsProductVndkVersionDefined()) {
-      namespaces.emplace_back(BuildProductNamespace(ctx, "product"));
-      namespaces.emplace_back(
-          BuildVndkNamespace(ctx, VndkUserPartition::Product));
+    if (!android::linkerconfig::modules::IsVndkDeprecated()) {
+      namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+      if (android::linkerconfig::modules::IsProductVndkVersionDefined()) {
+        namespaces.emplace_back(BuildProductNamespace(ctx, "product"));
+        namespaces.emplace_back(
+            BuildVndkNamespace(ctx, VndkUserPartition::Product));
+      }
     }
   }
 
