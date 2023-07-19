@@ -44,7 +44,7 @@ Namespace BuildProductNamespace(const Context& ctx, const std::string& name) {
   if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
     ns.GetLink("vndk_product")
         .AddSharedLib(Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"));
-  } else {
+  } else if (!android::linkerconfig::modules::IsVndkDeprecated()) {
     ns.GetLink("vndk").AddSharedLib({Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"),
                                      Var("VNDK_CORE_LIBRARIES_PRODUCT")});
     if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {
