@@ -88,7 +88,7 @@ Section BuildApexDefaultSection(Context& ctx, const ApexInfo& apex_info) {
       }
       if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {
         namespaces.emplace_back(BuildVndkInSystemNamespace(ctx));
-      } else {
+      } else if (!android::linkerconfig::modules::IsVndkDeprecated()) {
         namespaces.emplace_back(
             BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
       }
@@ -100,7 +100,7 @@ Section BuildApexDefaultSection(Context& ctx, const ApexInfo& apex_info) {
 
       if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {
         namespaces.emplace_back(BuildVndkInSystemNamespace(ctx));
-      } else {
+      } else if (!android::linkerconfig::modules::IsVndkDeprecated()){
         namespaces.emplace_back(
             BuildVndkNamespace(ctx, VndkUserPartition::Product));
       }
@@ -125,6 +125,8 @@ Section BuildApexDefaultSection(Context& ctx, const ApexInfo& apex_info) {
         {},
     }};
   }
+
+  // TODO(b/290318998): Do not add VNDK libraries as provider when VNDK is not available.
   if (ctx.IsVndkAvailable()) {
     VndkUserPartition user_partition = VndkUserPartition::Vendor;
     std::string user_partition_suffix = "VENDOR";
