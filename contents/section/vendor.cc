@@ -37,7 +37,9 @@ Section BuildVendorSection(Context& ctx) {
   std::vector<Namespace> namespaces;
 
   namespaces.emplace_back(BuildVendorDefaultNamespace(ctx));
-  namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+  if (!android::linkerconfig::modules::IsVndkDeprecated()) {
+    namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+  }
   namespaces.emplace_back(BuildSystemNamespace(ctx));
   namespaces.emplace_back(BuildRsNamespace(ctx));
 
@@ -55,7 +57,7 @@ Section BuildVendorSection(Context& ctx) {
   }
 
   LibProviders libs_providers = {};
-  if (ctx.IsVndkAvailable()) {
+  if (ctx.IsVndkAvailable() && !android::linkerconfig::modules::IsVndkDeprecated()) {
     libs_providers[":vndk"] = GetVndkProvider(ctx, VndkUserPartition::Vendor);
   }
 

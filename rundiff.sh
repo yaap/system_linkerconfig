@@ -112,6 +112,11 @@ function run_linkerconfig_stage2 {
   linkerconfig -v R -p R -r $TMP_PATH -t $1/product-enabled
 
   # skip prepare_root (reuse the previous setup)
+  mkdir -p $1/deprecate_vndk
+  echo "Running linkerconfig with VNDK deprecated"
+  linkerconfig -v R -p R --deprecate_vndk -r $TMP_PATH -t $1/deprecate_vndk
+
+  # skip prepare_root (reuse the previous setup)
   mkdir -p $1/gen-only-a-single-apex
   echo "Running linkerconfig for gen-only-a-single-apex"
   linkerconfig -v R -r $TMP_PATH --apex com.vendor.service2 -t $1/gen-only-a-single-apex

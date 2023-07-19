@@ -26,6 +26,7 @@ std::string GetVendorVndkVersion();
 std::string GetProductVndkVersion();
 bool IsProductVndkVersionDefined();
 bool IsRecoveryMode();
+bool IsVndkDeprecated();
 }  // namespace modules
 }  // namespace linkerconfig
 }  // namespace android
