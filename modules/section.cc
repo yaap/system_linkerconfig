@@ -23,6 +23,7 @@
 #include <android-base/result.h>
 #include <android-base/strings.h>
 
+#include "linkerconfig/environment.h"
 #include "linkerconfig/log.h"
 
 using android::base::Join;
@@ -88,14 +89,20 @@ void Section::Resolve(const BaseContext& ctx,
   for (auto& ns : namespaces_) {
     for (const auto& lib : ns.GetProvides()) {
       if (auto iter = providers.find(lib); iter != providers.end()) {
-        LOG(FATAL) << fmt::format(
+        // TODO(kiyoungkim): set log level back to fatal once issue is fixed.
+        android::base::LogSeverity loglevel = android::base::FATAL;
+        if (android::linkerconfig::modules::IsVndkDeprecated()) {
+          loglevel = android::base::WARNING;
+        }
+        LOG(loglevel) << fmt::format(
             "duplicate: {} is provided by {} and {} in [{}]",
             lib,
             iter->second,
             ns.GetName(),
             name_);
+      } else {
+        providers[lib] = ns.GetName();
       }
-      providers[lib] = ns.GetName();
     }
   }
 

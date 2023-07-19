@@ -51,6 +51,10 @@ bool IsProductVndkVersionDefined() {
 bool IsRecoveryMode() {
   return access("/system/bin/recovery", F_OK) == 0;
 }
+
+bool IsVndkDeprecated() {
+  return Variables::GetValue("ro.vndk.deprecate").value_or("") == "true";
+}
 }  // namespace modules
 }  // namespace linkerconfig
 }  // namespace android
