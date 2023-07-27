@@ -127,7 +127,8 @@ Section BuildApexDefaultSection(Context& ctx, const ApexInfo& apex_info) {
   }
 
   // TODO(b/290318998): Do not add VNDK libraries as provider when VNDK is not available.
-  if (ctx.IsVndkAvailable()) {
+  if (ctx.IsVndkAvailable() &&
+      !android::linkerconfig::modules::IsVndkDeprecated()) {
     VndkUserPartition user_partition = VndkUserPartition::Vendor;
     std::string user_partition_suffix = "VENDOR";
     if (apex_info.InProduct()) {
