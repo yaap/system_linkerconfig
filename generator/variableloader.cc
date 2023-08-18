@@ -94,9 +94,21 @@ void LoadVndkLibraryListVariables(const std::string& root,
   const std::string sanitizer_library_path =
       root + "/system/etc/sanitizer.libraries.txt";
 
-  Variables::AddValue("LLNDK_LIBRARIES_" + partition,
-                      GetPublicLibrariesString(llndk_libraries_path,
-                                               vndkprivate_libraries_path));
+  // llndk.libraries.txt in the system image does not contain version
+  // information in the file name because system has fixed target version which
+  // is always higher or equal than vendor / product images, and llndk libraries
+  // (and its list) are backward compatible.
+  const std::string llndk_libraries_in_system_path =
+      root + "/system/etc/llndk.libraries.txt";
+
+  if (android::linkerconfig::modules::IsVndkDeprecated()) {
+    Variables::AddValue("LLNDK_LIBRARIES_" + partition,
+                        GetLibrariesString(llndk_libraries_in_system_path));
+  } else {
+    Variables::AddValue("LLNDK_LIBRARIES_" + partition,
+                        GetPublicLibrariesString(llndk_libraries_path,
+                                                 vndkprivate_libraries_path));
+  }
 
   Variables::AddValue("PRIVATE_LLNDK_LIBRARIES_" + partition,
                       GetPrivateLibrariesString(llndk_libraries_path,
