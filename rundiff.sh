@@ -63,22 +63,6 @@ function build_root {
   done
 }
 
-function run_linkerconfig_stage0 {
-  # prepare root
-
-  echo "Prepare root for stage 0"
-  TMP_PATH=$2/stage0
-  mkdir $TMP_PATH
-  build_root testdata/root $TMP_PATH
-  ./testdata/prepare_root.sh --root $TMP_PATH
-
-  mkdir -p $1/stage0
-  echo "Running linkerconfig for stage 0"
-  linkerconfig -v R -r $TMP_PATH -t $1/stage0
-
-  echo "Stage 0 completed"
-}
-
 function run_linkerconfig_stage1 {
   # prepare root
   echo "Prepare root for stage 1"
@@ -89,7 +73,7 @@ function run_linkerconfig_stage1 {
 
   mkdir -p $1/stage1
   echo "Running linkerconfig for stage 1"
-  linkerconfig -v R -r $TMP_PATH -t $1/stage1
+  linkerconfig -v R -p R -r $TMP_PATH -t $1/stage1
 
   echo "Stage 1 completed"
 }
@@ -104,12 +88,7 @@ function run_linkerconfig_stage2 {
 
   mkdir -p $1/stage2
   echo "Running linkerconfig for stage 2"
-  linkerconfig -v R -r $TMP_PATH -t $1/stage2
-
-  # skip prepare_root in order to use the same apexs
-  mkdir -p $1/product-enabled
-  echo "Running linkerconfig for product-enabled"
-  linkerconfig -v R -p R -r $TMP_PATH -t $1/product-enabled
+  linkerconfig -v R -p R -r $TMP_PATH -t $1/stage2
 
   # skip prepare_root (reuse the previous setup)
   mkdir -p $1/deprecate_vndk
@@ -147,12 +126,6 @@ function run_linkerconfig_others {
   echo "Running linkerconfig for guest"
   linkerconfig -v R -p R -r $TMP_PATH -t $1/guest
 
-  # skip prepare_root in order to use the same apexes except VNDK
-  rm -iRf $TMP_PATH/apex/com.android.vndk.vR
-  mkdir -p $1/legacy
-  echo "Running linkerconfig for legacy"
-  linkerconfig -r $TMP_PATH -t $1/legacy
-
   echo "Stage others completed"
 }
 
@@ -163,7 +136,7 @@ function run_linkerconfig_to {
 
   TMP_ROOT=$(mktemp -d -t linkerconfig-root-XXXXXXXX)
 
-  run_linkerconfig_stage0 $1 $TMP_ROOT &
+  # stage 0 is no longer tested because linkerconfig do not generate ld.config.txt for stage 0
 
   run_linkerconfig_stage1 $1 $TMP_ROOT &
 
