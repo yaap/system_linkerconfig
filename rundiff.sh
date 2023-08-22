@@ -93,7 +93,7 @@ function run_linkerconfig_stage2 {
   # skip prepare_root (reuse the previous setup)
   mkdir -p $1/deprecate_vndk
   echo "Running linkerconfig with VNDK deprecated"
-  linkerconfig -v R -p R -d -z -r $TMP_PATH -t $1/deprecate_vndk
+  linkerconfig -z -r $TMP_PATH -t $1/deprecate_vndk
 
   # skip prepare_root (reuse the previous setup)
   mkdir -p $1/gen-only-a-single-apex
