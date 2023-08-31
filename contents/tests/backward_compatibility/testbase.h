@@ -46,6 +46,8 @@ inline void MockVariables(std::string vndk_ver = "Q") {
   MockVndkVariables("PRODUCT", vndk_ver);
   Variables::AddValue("ro.product.vndk.version", vndk_ver);
 
+  Variables::AddValue("ro.treble.enabled", "true");
+
   Variables::AddValue("SYSTEM_EXT", "/system_ext");
   Variables::AddValue("PRODUCT", "/procut");
 

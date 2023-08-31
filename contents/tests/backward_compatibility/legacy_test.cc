@@ -21,7 +21,9 @@
 #include "testbase.h"
 
 TEST(linkerconfig_legacy_backward_compatibility, default_namespace) {
-  MockVariables();
+  MockVariables("");
+  android::linkerconfig::modules::Variables::AddValue("ro.treble.enabled",
+                                                      "false");
   android::linkerconfig::contents::Context ctx;
   auto config = android::linkerconfig::contents::CreateLegacyConfiguration(ctx);
 
