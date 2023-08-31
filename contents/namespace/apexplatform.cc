@@ -24,7 +24,6 @@
 #include "linkerconfig/namespace.h"
 
 using android::linkerconfig::modules::ApexInfo;
-using android::linkerconfig::modules::IsProductVndkVersionDefined;
 using android::linkerconfig::modules::Namespace;
 
 namespace android {
@@ -35,7 +34,7 @@ Namespace BuildApexPlatformNamespace([[maybe_unused]] const Context& ctx) {
 
   ns.AddSearchPath("/system/${LIB}");
   ns.AddSearchPath(Var("SYSTEM_EXT") + "/${LIB}");
-  if (!IsProductVndkVersionDefined()) {
+  if (!android::linkerconfig::modules::IsTreblelizedDevice()) {
     ns.AddSearchPath(Var("PRODUCT") + "/${LIB}");
   }
 
