@@ -46,15 +46,14 @@ Namespace BuildVendorNamespace([[maybe_unused]] const Context& ctx,
   ns.AddPermittedPath("/vendor");
   ns.AddPermittedPath("/system/vendor");
 
-  if (ctx.IsVndkAvailable()) {
-    ns.GetLink("rs").AddSharedLib("libRS_internal.so");
-    ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
+  ns.GetLink("rs").AddSharedLib("libRS_internal.so");
+  ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
+
+  if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
     ns.GetLink(ctx.GetSystemNamespaceName())
         .AddSharedLib(Var("SANITIZER_DEFAULT_VENDOR"));
-    if (!android::linkerconfig::modules::IsVndkDeprecated()) {
-      ns.GetLink("vndk").AddSharedLib({Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR"),
-                                       Var("VNDK_CORE_LIBRARIES_VENDOR")});
-    }
+    ns.GetLink("vndk").AddSharedLib({Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR"),
+                                     Var("VNDK_CORE_LIBRARIES_VENDOR")});
     if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {
       ns.GetLink("vndk_in_system")
           .AddSharedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));

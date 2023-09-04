@@ -89,9 +89,10 @@ void Section::Resolve(const BaseContext& ctx,
   for (auto& ns : namespaces_) {
     for (const auto& lib : ns.GetProvides()) {
       if (auto iter = providers.find(lib); iter != providers.end()) {
-        // TODO(kiyoungkim): set log level back to fatal once issue is fixed.
+        // TODO(b/297821005): set log level back to fatal once issue is fixed.
         android::base::LogSeverity loglevel = android::base::FATAL;
-        if (android::linkerconfig::modules::IsVndkDeprecated()) {
+        if (!android::linkerconfig::modules::IsVendorVndkVersionDefined() ||
+            !android::linkerconfig::modules::IsProductVndkVersionDefined()) {
           loglevel = android::base::WARNING;
         }
         LOG(loglevel) << fmt::format(

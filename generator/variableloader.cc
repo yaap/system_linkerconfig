@@ -83,8 +83,7 @@ void LoadVndkLibraryListVariables(const std::string& root,
     PLOG(ERROR) << "Unable to access VNDK APEX at path: " << vndk_path;
     return;
   }
-  const std::string llndk_libraries_path =
-      vndk_path + "/etc/llndk.libraries." + vndk_version + ".txt";
+
   const std::string vndksp_libraries_path =
       vndk_path + "/etc/vndksp.libraries." + vndk_version + ".txt";
   const std::string vndkcore_libraries_path =
@@ -93,26 +92,6 @@ void LoadVndkLibraryListVariables(const std::string& root,
       vndk_path + "/etc/vndkprivate.libraries." + vndk_version + ".txt";
   const std::string sanitizer_library_path =
       root + "/system/etc/sanitizer.libraries.txt";
-
-  // llndk.libraries.txt in the system image does not contain version
-  // information in the file name because system has fixed target version which
-  // is always higher or equal than vendor / product images, and llndk libraries
-  // (and its list) are backward compatible.
-  const std::string llndk_libraries_in_system_path =
-      root + "/system/etc/llndk.libraries.txt";
-
-  if (android::linkerconfig::modules::IsVndkDeprecated()) {
-    Variables::AddValue("LLNDK_LIBRARIES_" + partition,
-                        GetLibrariesString(llndk_libraries_in_system_path));
-  } else {
-    Variables::AddValue("LLNDK_LIBRARIES_" + partition,
-                        GetPublicLibrariesString(llndk_libraries_path,
-                                                 vndkprivate_libraries_path));
-  }
-
-  Variables::AddValue("PRIVATE_LLNDK_LIBRARIES_" + partition,
-                      GetPrivateLibrariesString(llndk_libraries_path,
-                                                vndkprivate_libraries_path));
 
   Variables::AddValue("VNDK_SAMEPROCESS_LIBRARIES_" + partition,
                       GetPublicLibrariesString(vndksp_libraries_path,
@@ -135,9 +114,47 @@ void LoadVndkLibraryListVariables(const std::string& root,
   }
 }
 
+void LoadLlndkLibraryListVariables(const std::string& root,
+                                   const std::string& vndk_version,
+                                   const std::string& partition) {
+  if (vndk_version == "") {
+    // llndk.libraries.txt in the system image does not contain version
+    // information in the file name because system has fixed target version
+    // which is always higher or equal than vendor / product images, and llndk
+    // libraries (and its list) are backward compatible.
+    const std::string llndk_libraries_in_system_path =
+        root + "/system/etc/llndk.libraries.txt";
+    Variables::AddValue("LLNDK_LIBRARIES_" + partition,
+                        GetLibrariesString(llndk_libraries_in_system_path));
+  } else {
+    const std::string vndk_path =
+        root + "/apex/com.android.vndk.v" + vndk_version;
+    // Skip loading if VNDK APEX is not available
+    if (::access(vndk_path.c_str(), F_OK) != 0) {
+      PLOG(ERROR) << "Unable to access VNDK APEX at path: " << vndk_path;
+      return;
+    }
+
+    const std::string llndk_libraries_path =
+        vndk_path + "/etc/llndk.libraries." + vndk_version + ".txt";
+    const std::string vndkprivate_libraries_path =
+        vndk_path + "/etc/vndkprivate.libraries." + vndk_version + ".txt";
+
+    Variables::AddValue("LLNDK_LIBRARIES_" + partition,
+                        GetPublicLibrariesString(llndk_libraries_path,
+                                                 vndkprivate_libraries_path));
+    Variables::AddValue("PRIVATE_LLNDK_LIBRARIES_" + partition,
+                        GetPrivateLibrariesString(llndk_libraries_path,
+                                                  vndkprivate_libraries_path));
+  }
+}
+
 void LoadLibraryListVariables(const std::string& root) {
   LoadVndkLibraryListVariables(root, GetVendorVndkVersion(), "VENDOR");
   LoadVndkLibraryListVariables(root, GetProductVndkVersion(), "PRODUCT");
+
+  LoadLlndkLibraryListVariables(root, GetVendorVndkVersion(), "VENDOR");
+  LoadLlndkLibraryListVariables(root, GetProductVndkVersion(), "PRODUCT");
 
   auto sanitizer_library_path = root + "/system/etc/sanitizer.libraries.txt";
   Variables::AddValue("SANITIZER_RUNTIME_LIBRARIES",
