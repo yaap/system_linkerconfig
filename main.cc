@@ -87,7 +87,6 @@ struct ProgramArgs {
                " --root <root dir>"
                " --vndk <vndk version>"
                " --product_vndk <product vndk version>"
-               " --deprecate_vndk"
                " --recovery"
                " --treblelize"
 #endif
@@ -107,7 +106,7 @@ std::string RealPath(std::string_view path) {
 bool ParseArgs(int argc, char* argv[], ProgramArgs* args) {
   int parse_result;
   while ((parse_result = getopt_long(
-              argc, argv, "a:t:sr:v:ep:hdzyl", program_options, NULL)) != -1) {
+              argc, argv, "a:t:sr:v:ep:hzyl", program_options, NULL)) != -1) {
     switch (parse_result) {
       case 'a':
         args->target_apex = optarg;
@@ -126,9 +125,6 @@ bool ParseArgs(int argc, char* argv[], ProgramArgs* args) {
         break;
       case 'p':
         args->product_vndk_version = optarg;
-        break;
-      case 'd':
-        args->deprecate_vndk = true;
         break;
       case 'z':
         args->is_treblelized = true;
@@ -159,10 +155,6 @@ void LoadVariables(const ProgramArgs& args) {
                                                       args.vndk_version);
   android::linkerconfig::modules::Variables::AddValue(
       "ro.product.vndk.version", args.product_vndk_version);
-  
-  if (args.deprecate_vndk) {
-    android::linkerconfig::modules::Variables::AddValue("ro.vndk.deprecate", "true");
-  }
 
   if (args.is_treblelized) {
     android::linkerconfig::modules::Variables::AddValue("ro.treble.enabled",
