@@ -67,8 +67,10 @@ TEST(linkerconfig_configuration_fulltest,
      apexes_with_jni_are_visible_to_system_section) {
   MockGenericVariables();
   Context ctx;
-  ctx.SetApexModules({ApexInfo(
-      "foo", "", {}, {}, {"libjni.so"}, {}, {}, false, true, false, false)});
+  ctx.SetApexModules(
+      {CreateTestVndkApex(),
+       ApexInfo(
+           "foo", "", {}, {}, {"libjni.so"}, {}, {}, false, true, false, false)});
   auto config = CreateBaseConfiguration(ctx);
 
   auto* section = config.GetSection("system");

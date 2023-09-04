@@ -101,7 +101,7 @@ android::linkerconfig::modules::Configuration CreateBaseConfiguration(
   };
 
   sections.emplace_back(BuildSystemSection(ctx));
-  if (ctx.IsVndkAvailable()) {
+  if (android::linkerconfig::modules::IsTreblelizedDevice()) {
     sections.emplace_back(BuildVendorSection(ctx));
     if (android::linkerconfig::modules::IsProductVndkVersionDefined()) {
       sections.emplace_back(BuildProductSection(ctx));
