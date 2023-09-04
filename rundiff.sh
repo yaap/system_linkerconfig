@@ -91,11 +91,6 @@ function run_linkerconfig_stage2 {
   linkerconfig -v R -p R -z -r $TMP_PATH -t $1/stage2
 
   # skip prepare_root (reuse the previous setup)
-  mkdir -p $1/deprecate_vndk
-  echo "Running linkerconfig with VNDK deprecated"
-  linkerconfig -z -r $TMP_PATH -t $1/deprecate_vndk
-
-  # skip prepare_root (reuse the previous setup)
   mkdir -p $1/gen-only-a-single-apex
   echo "Running linkerconfig for gen-only-a-single-apex"
   linkerconfig -v R -z -r $TMP_PATH --apex com.vendor.service2 -t $1/gen-only-a-single-apex
@@ -112,6 +107,26 @@ function run_linkerconfig_stage2 {
   vndk_core_variant_libs_file=
 
   echo "Stage 2 completed"
+}
+
+function run_linkerconfig_deprecate_vndk {
+  # prepare root
+  echo "Prepare root for VNDK deprecation"
+  TMP_PATH=$2/deprecate_vndk
+  mkdir $TMP_PATH
+  build_root testdata/root $TMP_PATH
+  ./testdata/prepare_root.sh --all --root $TMP_PATH
+
+  mkdir -p $1/deprecate_vndk
+  echo "Running linkerconfig with VNDK deprecated"
+  linkerconfig -z -r $TMP_PATH -t $1/deprecate_vndk
+
+  # skip prepare_root (reuse the previous setup)
+  mkdir -p $1/deprecate_product_vndk
+  echo "Running linkerconfig with VNDK deprecated only with product partition"
+  linkerconfig -v R -z -r $TMP_PATH -t $1/deprecate_product_vndk
+
+  echo "Stage VNDK deprecation completed"
 }
 
 function run_linkerconfig_others {
@@ -141,6 +156,8 @@ function run_linkerconfig_to {
   run_linkerconfig_stage1 $1 $TMP_ROOT &
 
   run_linkerconfig_stage2 $1 $TMP_ROOT &
+
+  run_linkerconfig_deprecate_vndk $1 $TMP_ROOT &
 
   run_linkerconfig_others $1 $TMP_ROOT &
 
