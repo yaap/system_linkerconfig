@@ -43,16 +43,16 @@ std::string GetProductVndkVersion() {
   return Variables::GetValue("ro.product.vndk.version").value_or("");
 }
 
+bool IsVendorVndkVersionDefined() {
+  return Variables::GetValue("ro.vndk.version").has_value();
+}
+
 bool IsProductVndkVersionDefined() {
   return Variables::GetValue("ro.product.vndk.version").has_value();
 }
 
 bool IsRecoveryMode() {
   return access("/system/bin/recovery", F_OK) == 0;
-}
-
-bool IsVndkDeprecated() {
-  return Variables::GetValue("ro.vndk.deprecate").value_or("") == "true";
 }
 }  // namespace modules
 }  // namespace linkerconfig

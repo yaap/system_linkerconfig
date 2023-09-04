@@ -17,6 +17,7 @@
 #include "linkerconfig/baseconfig.h"
 #include "linkerconfig/environment.h"
 #include "linkerconfig/sectionbuilder.h"
+#include "linkerconfig/variables.h"
 
 using android::linkerconfig::modules::DirToSection;
 using android::linkerconfig::modules::Section;

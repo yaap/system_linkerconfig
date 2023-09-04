@@ -70,7 +70,7 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
   }
 
   if (ctx.IsApexBinaryConfig()) {
-    if (ctx.IsVndkAvailable()) {
+    if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
       AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
       ns.AddRequires(std::vector{":vndksp"});
     }
@@ -83,7 +83,7 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
       ns.GetLink("rs").AddSharedLib("libRS_internal.so");
     }
     AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
-    if (!android::linkerconfig::modules::IsVndkDeprecated()) {
+    if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
       ns.GetLink("vndk").AddSharedLib(
           Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR", ""));
     }
