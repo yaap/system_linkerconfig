@@ -117,8 +117,7 @@ bool Context::IsSectionVndkEnabled() const {
   if (IsVendorSection()) {
     return true;
   }
-  if (IsProductSection() &&
-      android::linkerconfig::modules::IsProductVndkVersionDefined()) {
+  if (IsProductSection()) {
     return true;
   }
   if (IsApexBinaryConfig()) {
