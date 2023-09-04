@@ -20,6 +20,9 @@
 inline void MockGenericVariables() {
   android::linkerconfig::modules::Variables::AddValue("ro.treble.enabled",
                                                       "true");
+  android::linkerconfig::modules::Variables::AddValue("ro.vndk.version", "99");
+  android::linkerconfig::modules::Variables::AddValue("ro.product.vndk.version",
+                                                      "99");
   android::linkerconfig::modules::Variables::AddValue("VENDOR_VNDK_VERSION",
                                                       "99");
   android::linkerconfig::modules::Variables::AddValue("PRODUCT_VNDK_VERSION",
