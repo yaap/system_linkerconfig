@@ -23,6 +23,7 @@
 #include "linkerconfig/apex.h"
 #include "linkerconfig/basecontext.h"
 #include "linkerconfig/configwriter.h"
+#include "linkerconfig/variables.h"
 #include "modules_testbase.h"
 
 using namespace android::linkerconfig::modules;
@@ -181,6 +182,10 @@ TEST(linkerconfig_section, resolve_contraints) {
 
 TEST(linkerconfig_section, error_if_duplicate_providing) {
   BaseContext ctx;
+  // TODO(b/297821005) : remove vendor / product vndk version set up
+  android::linkerconfig::modules::Variables::AddValue("ro.vndk.version", "99");
+  android::linkerconfig::modules::Variables::AddValue("ro.product.vndk.version",
+                                                      "99");
   std::vector<Namespace> namespaces;
   Namespace& foo1 = namespaces.emplace_back("foo1");
   foo1.AddProvides(std::vector{"libfoo.so"});
