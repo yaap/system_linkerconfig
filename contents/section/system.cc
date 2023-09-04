@@ -34,7 +34,7 @@ Section BuildSystemSection(Context& ctx) {
   std::vector<Namespace> namespaces;
 
   namespaces.emplace_back(BuildSystemDefaultNamespace(ctx));
-  if (ctx.IsVndkAvailable()) {
+  if (android::linkerconfig::modules::IsTreblelizedDevice()) {
     namespaces.emplace_back(BuildSphalNamespace(ctx));
     namespaces.emplace_back(BuildRsNamespace(ctx));
     if (!android::linkerconfig::modules::IsVndkDeprecated()) {
