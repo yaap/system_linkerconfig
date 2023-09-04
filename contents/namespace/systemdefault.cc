@@ -84,7 +84,8 @@ void SetupSystemPermittedPaths(Namespace* ns) {
 }
 
 Namespace BuildSystemDefaultNamespace([[maybe_unused]] const Context& ctx) {
-  bool is_fully_treblelized = ctx.IsDefaultConfig();
+  bool is_fully_treblelized =
+      android::linkerconfig::modules::IsTreblelizedDevice();
   std::string product = Var("PRODUCT");
   std::string system_ext = Var("SYSTEM_EXT");
 
