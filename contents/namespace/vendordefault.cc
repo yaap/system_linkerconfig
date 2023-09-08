@@ -62,6 +62,11 @@ Namespace BuildVendorNamespace([[maybe_unused]] const Context& ctx,
 
   ns.AddRequires(ctx.GetVendorRequireLibs());
   ns.AddProvides(ctx.GetVendorProvideLibs());
+  // TODO(b/296491928) Vendor APEX should use its own libbinder_ndk when VNDK is
+  // deprecated.
+  if (!android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+    ns.AddProvides(std::vector{"libbinder.so"});
+  }
   return ns;
 }
 }  // namespace contents
