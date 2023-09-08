@@ -115,16 +115,25 @@ bool Context::IsSectionVndkEnabled() const {
     return false;
   }
   if (IsVendorSection()) {
-    return true;
+    return android::linkerconfig::modules::IsVendorVndkVersionDefined();
   }
   if (IsProductSection()) {
-    return true;
+    return android::linkerconfig::modules::IsProductVndkVersionDefined();
   }
   if (IsApexBinaryConfig()) {
     // section for non-system APEX (aka Vendor APEX)
     // can be seen as vndk-enabled because the apex either bundles
     // with vndk libs in it or relies on VNDK from "vndk" namespace
-    return !GetCurrentApex().InSystem();
+    // if the partition is VNDK enabled
+    if (GetCurrentApex().InVendor()) {
+      return android::linkerconfig::modules::IsVendorVndkVersionDefined();
+    }
+
+    if (GetCurrentApex().InProduct()) {
+      return android::linkerconfig::modules::IsProductVndkVersionDefined();
+    }
+
+    return false;
   }
   return false;
 }
