@@ -163,3 +163,15 @@ TEST(linkerconfig_namespace, apex_should_not_allow_all_links) {
 
   ASSERT_EQ("", writer.ToString());
 }
+
+TEST(linkerconfig_namespace, should_not_add_link_to_self) {
+  ConfigWriter writer;
+
+  auto ns = CreateNamespaceWithLinks(
+      "test_namespace", true, true, "target_namespace1", "target_namespace2");
+  ns.GetLink("test_namespace").AddSharedLib("libtest.so");
+  ns.WriteConfig(writer);
+  auto config = writer.ToString();
+
+  ASSERT_EQ(config, kExpectedNamespaceWithLinkConfig);
+}
