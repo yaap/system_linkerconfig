@@ -19,14 +19,14 @@
 namespace android {
 namespace linkerconfig {
 namespace modules {
-bool IsLegacyDevice();
+bool IsTreblelizedDevice();
 bool IsVndkLiteDevice();
 bool IsVndkInSystemNamespace();
 std::string GetVendorVndkVersion();
 std::string GetProductVndkVersion();
+bool IsVendorVndkVersionDefined();
 bool IsProductVndkVersionDefined();
 bool IsRecoveryMode();
-bool IsVndkDeprecated();
 }  // namespace modules
 }  // namespace linkerconfig
 }  // namespace android

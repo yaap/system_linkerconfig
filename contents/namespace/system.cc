@@ -21,7 +21,6 @@
 #include "linkerconfig/environment.h"
 #include "linkerconfig/namespacebuilder.h"
 
-using android::linkerconfig::modules::IsProductVndkVersionDefined;
 using android::linkerconfig::modules::Namespace;
 
 namespace android {
@@ -31,7 +30,7 @@ Namespace BuildSystemNamespace([[maybe_unused]] const Context& ctx) {
   Namespace ns("system", /*is_isolated=*/false, /*is_visible=*/false);
   ns.AddSearchPath("/system/${LIB}");
   ns.AddSearchPath(Var("SYSTEM_EXT") + "/${LIB}");
-  if (!IsProductVndkVersionDefined()) {
+  if (!android::linkerconfig::modules::IsTreblelizedDevice()) {
     ns.AddSearchPath(Var("PRODUCT") + "/${LIB}");
   }
 

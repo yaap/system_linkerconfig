@@ -34,11 +34,14 @@ Section BuildSystemSection(Context& ctx) {
   std::vector<Namespace> namespaces;
 
   namespaces.emplace_back(BuildSystemDefaultNamespace(ctx));
-  if (ctx.IsVndkAvailable()) {
+  if (android::linkerconfig::modules::IsTreblelizedDevice()) {
     namespaces.emplace_back(BuildSphalNamespace(ctx));
     namespaces.emplace_back(BuildRsNamespace(ctx));
-    if (!android::linkerconfig::modules::IsVndkDeprecated()) {
-      namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+    if (ctx.IsVndkAvailable()) {
+      if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+        namespaces.emplace_back(
+            BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+      }
       if (android::linkerconfig::modules::IsProductVndkVersionDefined()) {
         namespaces.emplace_back(BuildProductNamespace(ctx, "product"));
         namespaces.emplace_back(

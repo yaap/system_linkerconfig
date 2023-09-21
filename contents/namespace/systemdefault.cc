@@ -22,7 +22,6 @@
 #include "linkerconfig/namespace.h"
 #include "linkerconfig/namespacebuilder.h"
 
-using android::linkerconfig::modules::IsProductVndkVersionDefined;
 using android::linkerconfig::modules::Namespace;
 
 namespace android {
@@ -77,14 +76,15 @@ void SetupSystemPermittedPaths(Namespace* ns) {
   for (const std::string& path : permitted_paths) {
     ns->AddPermittedPath(path);
   }
-  if (!IsProductVndkVersionDefined()) {
-    // System processes can use product libs only if product VNDK is not enforced.
+  if (!android::linkerconfig::modules::IsTreblelizedDevice()) {
+    // System processes can use product libs only if device is not treblelized.
     ns->AddPermittedPath(product + "/${LIB}");
   }
 }
 
 Namespace BuildSystemDefaultNamespace([[maybe_unused]] const Context& ctx) {
-  bool is_fully_treblelized = ctx.IsDefaultConfig();
+  bool is_fully_treblelized =
+      android::linkerconfig::modules::IsTreblelizedDevice();
   std::string product = Var("PRODUCT");
   std::string system_ext = Var("SYSTEM_EXT");
 
@@ -96,12 +96,10 @@ Namespace BuildSystemDefaultNamespace([[maybe_unused]] const Context& ctx) {
 
   ns.AddSearchPath("/system/${LIB}");
   ns.AddSearchPath(system_ext + "/${LIB}");
-  if (!IsProductVndkVersionDefined() || !is_fully_treblelized) {
+  if (!is_fully_treblelized) {
     // System processes can search product libs only if product VNDK is not
     // enforced.
     ns.AddSearchPath(product + "/${LIB}");
-  }
-  if (!is_fully_treblelized) {
     ns.AddSearchPath("/vendor/${LIB}");
     ns.AddSearchPath("/odm/${LIB}");
   }

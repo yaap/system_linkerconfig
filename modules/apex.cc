@@ -270,7 +270,7 @@ bool ApexInfo::InSystem() const {
     return true;
   }
   // /product partition if it's not separated from "system"
-  if (!IsProductVndkVersionDefined()) {
+  if (!IsTreblelizedDevice()) {
     if (StartsWith(original_path, "/product/apex/") ||
         StartsWith(original_path, "/system/product/apex/")) {
       return true;
@@ -285,7 +285,7 @@ bool ApexInfo::InSystem() const {
 
 bool ApexInfo::InProduct() const {
   // /product partition if it's separated from "system"
-  if (IsProductVndkVersionDefined()) {
+  if (IsTreblelizedDevice()) {
     if (StartsWith(original_path, "/product/apex/") ||
         StartsWith(original_path, "/system/product/apex/")) {
       return true;

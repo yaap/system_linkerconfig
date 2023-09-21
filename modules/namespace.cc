@@ -19,6 +19,7 @@
 #include <android-base/strings.h>
 
 #include "linkerconfig/apex.h"
+#include "linkerconfig/environment.h"
 #include "linkerconfig/log.h"
 
 using android::base::Result;
@@ -69,6 +70,12 @@ void InitializeWithApex(Namespace& ns, const ApexInfo& apex_info) {
   }
   ns.AddProvides(apex_info.provide_libs);
   ns.AddRequires(apex_info.require_libs);
+  // TODO(b/296491928) Vendor APEX should use its own libbinder_ndk when VNDK is
+  // deprecated.
+  if (apex_info.InVendor() &&
+      !android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+    ns.AddRequires(std::vector{"libbinder.so"});
+  }
   ns.SetApexSource(apex_info.name);
 }
 
@@ -110,12 +117,17 @@ void Namespace::WriteConfig(ConfigWriter& writer) {
   link_list.reserve(links_.size());
   for (const auto& link : links_) {
     if (link.Empty()) continue;
+    if (link.To() == name_) {
+      LOG(WARNING) << "Ignore link to self namespace : " << name_;
+      continue;
+    }
     link_list.push_back(link.To());
   }
   if (!link_list.empty()) {
     writer.WriteLine(prefix + "links = " + android::base::Join(link_list, ","));
     for (const auto& link : links_) {
       if (link.Empty()) continue;
+      if (link.To() == name_) continue;
       link.WriteConfig(writer);
     }
   }
