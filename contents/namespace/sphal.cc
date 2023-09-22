@@ -62,7 +62,8 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
     }
   }
 
-  if (ctx.IsApexBinaryConfig() && !ctx.IsVndkAvailable()) {
+  if (ctx.IsApexBinaryConfig() &&
+      !android::linkerconfig::modules::IsTreblelizedDevice()) {
     // If device is legacy, let Sphal libraries access to system lib path for
     // VNDK-SP libraries
     ns.AddSearchPath("/system/${LIB}");

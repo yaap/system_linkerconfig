@@ -115,7 +115,7 @@ function run_linkerconfig_deprecate_vndk {
   TMP_PATH=$2/deprecate_vndk
   mkdir $TMP_PATH
   build_root testdata/root $TMP_PATH
-  ./testdata/prepare_root.sh --all --root $TMP_PATH
+  ./testdata/prepare_root.sh --all --block com.android.art:com.android.vndk.vR --root $TMP_PATH
 
   mkdir -p $1/deprecate_vndk
   echo "Running linkerconfig with VNDK deprecated"
