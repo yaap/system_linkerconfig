@@ -79,7 +79,7 @@ Section BuildApexDefaultSection(Context& ctx, const ApexInfo& apex_info) {
 
   // Vendor APEXes can use libs provided by "vendor"
   // and Product APEXes can use libs provided by "product"
-  if (ctx.IsVndkAvailable()) {
+  if (android::linkerconfig::modules::IsTreblelizedDevice()) {
     if (apex_info.InVendor()) {
       namespaces.emplace_back(BuildRsNamespace(ctx));
       auto vendor = BuildVendorNamespace(ctx, "vendor");
