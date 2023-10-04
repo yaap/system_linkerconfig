@@ -19,7 +19,8 @@
       "name": "malloc_hooks_system_tests"
     },
     {
-      "name": "GtsLinkerConfigTestCases"
+      "name": "GtsLinkerConfigTestCases",
+      "keywords": ["internal"]
     }
   ],
   "imports": [
