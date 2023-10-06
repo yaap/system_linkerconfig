@@ -48,6 +48,7 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
 
   ns.AddPermittedPath("/odm/${LIB}");
   ns.AddPermittedPath("/vendor/${LIB}");
+  ns.AddPermittedPath("/vendor/odm/${LIB}");
   ns.AddPermittedPath("/system/vendor/${LIB}");
 
   for (const auto& apex : ctx.GetApexModules()) {
