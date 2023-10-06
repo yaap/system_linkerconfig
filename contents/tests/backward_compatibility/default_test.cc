@@ -65,6 +65,7 @@ TEST_F(linkerconfig_default_backward_compatibility, common_system_section) {
 
   ASSERT_TRUE(ContainsPermittedPath(sphal_namespace, "/odm/${LIB}"));
   ASSERT_TRUE(ContainsPermittedPath(sphal_namespace, "/vendor/${LIB}"));
+  ASSERT_TRUE(ContainsPermittedPath(sphal_namespace, "/vendor/odm/${LIB}"));
   ASSERT_TRUE(ContainsPermittedPath(sphal_namespace, "/system/vendor/${LIB}"));
 
   auto rs_namespace = system_section->GetNamespace("rs");
