@@ -61,6 +61,8 @@ Section BuildVendorSection(Context& ctx) {
     libs_providers[":vndk"] = GetVndkProvider(ctx, VndkUserPartition::Vendor);
   }
 
+  AddVendorSubdirNamespaceProviders(ctx, libs_providers);
+
   return BuildSection(
       ctx, "vendor", std::move(namespaces), visible_apexes, libs_providers);
 }
