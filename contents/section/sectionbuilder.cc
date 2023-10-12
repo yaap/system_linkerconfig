@@ -32,6 +32,7 @@ using modules::LibProvider;
 using modules::LibProviders;
 using modules::Namespace;
 using modules::Section;
+using modules::SharedLibs;
 
 Section BuildSection(const Context& ctx, const std::string& name,
                      std::vector<Namespace>&& namespaces,
@@ -72,14 +73,15 @@ std::vector<LibProvider> GetVndkProvider(const Context& ctx,
   provider.push_back(LibProvider{
       "vndk",
       std::bind(BuildVndkNamespace, ctx, partition),
-      {Var("VNDK_SAMEPROCESS_LIBRARIES_" + partition_suffix),
-       Var("VNDK_CORE_LIBRARIES_" + partition_suffix)},
+      SharedLibs{
+          std::vector{Var("VNDK_SAMEPROCESS_LIBRARIES_" + partition_suffix),
+                      Var("VNDK_CORE_LIBRARIES_" + partition_suffix)}},
   });
   if (modules::IsVndkInSystemNamespace()) {
     provider.push_back(LibProvider{
         "vndk_in_system",
         std::bind(BuildVndkInSystemNamespace, ctx),
-        {Var("VNDK_USING_CORE_VARIANT_LIBRARIES")},
+        SharedLibs{std::vector{Var("VNDK_USING_CORE_VARIANT_LIBRARIES")}},
     });
   }
   return provider;
