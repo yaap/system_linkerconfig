@@ -154,7 +154,8 @@ void Section::Resolve(const BaseContext& ctx,
         for (const auto& provider : it->second) {
           // Alias is expanded to <shared_libs>.
           // For example, ":vndk" is expanded to the list of VNDK-Core/VNDK-Sp libraries
-          ns.GetLink(provider.ns).AddSharedLib(provider.shared_libs);
+          std::visit([&](auto&& mod) { mod.Apply(ns.GetLink(provider.ns)); },
+                     provider.link_modifier);
           // Add a new namespace for the alias
           add_namespace(provider.ns, provider.ns_builder);
         }
