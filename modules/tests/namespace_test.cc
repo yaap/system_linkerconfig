@@ -155,7 +155,7 @@ TEST(linkerconfig_namespace, namespace_links_should_be_ordered) {
 
 TEST(linkerconfig_namespace, apex_should_not_allow_all_links) {
   Namespace ns("test_namespace");
-  ns.SetApexSource("com.android.test");
+  ns.SetApexSource(ApexSource{"com.android.test", false});
   ns.GetLink("target_namespace").AllowAllSharedLibs();
 
   ConfigWriter writer;
