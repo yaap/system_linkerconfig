@@ -29,6 +29,11 @@ namespace android {
 namespace linkerconfig {
 namespace modules {
 
+struct ApexSource {
+  std::string name;
+  bool in_vendor;
+};
+
 class Namespace {
  public:
   explicit Namespace(std::string name, bool is_isolated = false,
@@ -64,12 +69,12 @@ class Namespace {
     return is_visible_;
   }
 
-  void SetApexSource(std::string apex_name) {
-    source_apex_name_ = apex_name;
+  void SetApexSource(ApexSource source) {
+    apex_source_ = source;
   }
 
-  std::string GetApexSource() const {
-    return source_apex_name_;
+  const ApexSource& GetApexSource() const {
+    return apex_source_;
   }
 
   // For test usage
@@ -116,7 +121,8 @@ class Namespace {
   std::vector<Link> links_;
   std::set<std::string> provides_;
   std::set<std::string> requires_;
-  std::string source_apex_name_;
+  // Verification context
+  ApexSource apex_source_;
 
   void WritePathString(ConfigWriter& writer, const std::string& path_type,
                        const std::vector<std::string>& path_list);
