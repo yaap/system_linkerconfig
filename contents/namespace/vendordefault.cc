@@ -24,6 +24,9 @@
 #include "linkerconfig/common.h"
 #include "linkerconfig/environment.h"
 
+using android::linkerconfig::modules::AllowAllSharedLibs;
+using android::linkerconfig::modules::LibProvider;
+using android::linkerconfig::modules::LibProviders;
 using android::linkerconfig::modules::Namespace;
 
 namespace android {
@@ -69,6 +72,48 @@ Namespace BuildVendorNamespace([[maybe_unused]] const Context& ctx,
   }
   return ns;
 }
+
+static Namespace BuildVendorSubdirNamespace(const Context&,
+                                            const std::string& name,
+                                            const std::string& subdir) {
+  Namespace ns(name, /*is_isolated=*/true, /*is_visible=*/true);
+  ns.AddSearchPath("/vendor/${LIB}/" + subdir);
+  ns.AddPermittedPath("/vendor/${LIB}/" + subdir);
+  ns.AddPermittedPath("/system/vendor/${LIB}/" + subdir);
+
+  // Common requirements for vendor libraries:
+  ns.AddRequires(base::Split(Var("LLNDK_LIBRARIES_VENDOR", ""), ":"));
+  ns.AddRequires(std::vector{":vendorall"});
+  if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+    ns.AddRequires(std::vector{":vndk"});
+  }
+
+  return ns;
+}
+
+void AddVendorSubdirNamespaceProviders(const Context& ctx,
+                                       LibProviders& providers) {
+  // Export known vendor subdirs as linker namespaces
+
+  // /vendor/lib/mediacas is for CAS HAL to open CAS plugins
+  providers[":mediacas"] = {LibProvider{
+      "mediacas",
+      std::bind(BuildVendorSubdirNamespace, ctx, "mediacas", "mediacas"),
+      AllowAllSharedLibs{},
+  }};
+
+  // Vendor subdir namespace should be able to access all /vendor/libs.
+  std::string vendor_namespace_name = "default";
+  if (ctx.IsApexBinaryConfig()) {
+    vendor_namespace_name = "vendor";
+  }
+  providers[":vendorall"] = {LibProvider{
+      "vendor",
+      std::bind(BuildVendorNamespace, ctx, vendor_namespace_name),
+      AllowAllSharedLibs{},
+  }};
+}
+
 }  // namespace contents
 }  // namespace linkerconfig
 }  // namespace android
