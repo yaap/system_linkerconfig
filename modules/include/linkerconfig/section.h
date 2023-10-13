@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <android-base/result.h>
@@ -31,18 +32,36 @@ namespace android {
 namespace linkerconfig {
 namespace modules {
 
+struct AllowAllSharedLibs {
+  AllowAllSharedLibs() {
+  }
+  void Apply(Link& link) const {
+    link.AllowAllSharedLibs();
+  }
+};
+struct SharedLibs {
+  std::vector<std::string> list;
+  SharedLibs(std::vector<std::string> list) : list(std::move(list)) {
+  }
+  void Apply(Link& link) const {
+    link.AddSharedLib(list);
+  }
+};
 // LibProvider is a provider for alias of library requirements.
 // When "foo" namespace requires "alias" (formatted ":name"),
 // you would expect
-//   foo.GetLink(<ns>).AddSharedLib(<shared_libs);
+//   foo.GetLink(<ns>).AddSharedLib(<shared_libs>);
+// or
+//   foo.GetLink(<ns>).AllowAllSharedLibs();
 // which is equivalent to
 //   namespace.foo.link.<ns>.shared_libs = <shared_libs>
+//   namespace.foo.link.<ns>.allow_all_shared_libs = true
 // The referenced namespace (<ns>) is created via <ns_builder> and added
 // in the current section.
 struct LibProvider {
   std::string ns;
   std::function<Namespace()> ns_builder;
-  std::vector<std::string> shared_libs;
+  std::variant<SharedLibs, AllowAllSharedLibs> link_modifier;
 };
 
 // LibProviders maps "alias" to one or more LibProviders.
