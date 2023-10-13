@@ -272,3 +272,30 @@ TEST(linkerconfig_section, resolve_section_with_apex) {
                   section.GetNamespace("foo")->GetLink("bar").GetSharedLibs()));
   EXPECT_EQ(nullptr, section.GetNamespace("baz"));
 }
+
+TEST(linkerconfig_section, resolve_link_modifiers) {
+  BaseContext ctx;
+  std::vector<Namespace> namespaces;
+  Namespace& default_ns = namespaces.emplace_back("default");
+  default_ns.AddRequires(std::vector{":foo", ":bar"});
+
+  LibProviders providers;
+  providers[":foo"].emplace_back(LibProvider{
+      "foo",
+      []() { return Namespace("foo"); },
+      AllowAllSharedLibs{},
+  });
+  providers[":bar"].emplace_back(LibProvider{
+      "bar",
+      []() { return Namespace("bar"); },
+      SharedLibs{{"libbar.so"}},
+  });
+
+  Section section("section", std::move(namespaces));
+  section.Resolve(ctx, providers);
+
+  EXPECT_TRUE(
+      section.GetNamespace("default")->GetLink("foo").IsAllSharedLibsAllowed());
+  EXPECT_THAT(section.GetNamespace("default")->GetLink("bar").GetSharedLibs(),
+              ::testing::ContainerEq(std::vector<std::string>{"libbar.so"}));
+}
