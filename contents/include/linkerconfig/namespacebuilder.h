@@ -53,6 +53,9 @@ modules::Namespace BuildApexEmptyDefaultNamespace(
     const Context& ctx, const modules::ApexInfo& apex_info);
 NamespaceBuilder BuildApexPlatformNamespace;
 
+void AddVendorSubdirNamespaceProviders(const Context& ctx,
+                                       modules::LibProviders& providers);
+
 }  // namespace contents
 }  // namespace linkerconfig
 }  // namespace android

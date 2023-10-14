@@ -29,9 +29,10 @@ constexpr const char* kDataAsanPath = "/data/asan";
 
 Result<void> VerifyIfApexNamespaceContainsAllSharedLink(
     const android::linkerconfig::modules::Namespace& ns) {
-  auto apex_name = ns.GetApexSource();
+  auto apex = ns.GetApexSource();
   // If namespace is not from APEX there is no need to check this.
-  if (apex_name == "") {
+  // Vendor apexes are allowed to use 'allow_all_shared_libs'.
+  if (apex.name == "" || apex.in_vendor) {
     return {};
   }
 
@@ -76,7 +77,7 @@ void InitializeWithApex(Namespace& ns, const ApexInfo& apex_info) {
       !android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
     ns.AddRequires(std::vector{"libbinder.so"});
   }
-  ns.SetApexSource(apex_info.name);
+  ns.SetApexSource(ApexSource{apex_info.name, apex_info.InVendor()});
 }
 
 Link& Namespace::GetLink(const std::string& target_namespace) {
