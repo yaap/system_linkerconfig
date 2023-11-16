@@ -47,7 +47,6 @@ struct ApexConfigTest : ::testing::Test {
                     require_libs,
                     /*jni_libs=*/{},
                     /*permitted_paths=*/{},
-                    /*contributions=*/{},
                     /*has_bin=*/true,
                     /*has_lib=*/true,
                     /*visible=*/false,
