@@ -51,18 +51,6 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
   ns.AddPermittedPath("/vendor/odm/${LIB}");
   ns.AddPermittedPath("/system/vendor/${LIB}");
 
-  for (const auto& apex : ctx.GetApexModules()) {
-    for (const auto& contribution : apex.contributions) {
-      if (contribution.namespace_name == "sphal") {
-        for (const auto& rel_path : contribution.paths) {
-          std::string path = "/apex/" + apex.name + "/" + rel_path;
-          ns.AddSearchPath(path);
-          ns.AddPermittedPath(std::move(path));
-        }
-      }
-    }
-  }
-
   if (ctx.IsApexBinaryConfig() &&
       !android::linkerconfig::modules::IsTreblelizedDevice()) {
     // If device is legacy, let Sphal libraries access to system lib path for
