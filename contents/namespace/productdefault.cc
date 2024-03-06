@@ -39,17 +39,20 @@ Namespace BuildProductNamespace(const Context& ctx, const std::string& name) {
   ns.AddPermittedPath(Var("PRODUCT", "product"));
 
   AddLlndkLibraries(ctx, &ns, VndkUserPartition::Product);
-  ns.GetLink(ctx.GetSystemNamespaceName())
-      .AddSharedLib(Var("SANITIZER_DEFAULT_PRODUCT"));
-  if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
-    ns.GetLink("vndk_product")
-        .AddSharedLib(Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"));
-  } else {
-    ns.GetLink("vndk").AddSharedLib({Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"),
-                                     Var("VNDK_CORE_LIBRARIES_PRODUCT")});
-    if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {
-      ns.GetLink("vndk_in_system")
-          .AddSharedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));
+  if (android::linkerconfig::modules::IsProductVndkVersionDefined()) {
+    ns.GetLink(ctx.GetSystemNamespaceName())
+        .AddSharedLib(Var("SANITIZER_DEFAULT_PRODUCT"));
+    if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
+      ns.GetLink("vndk_product")
+          .AddSharedLib(Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"));
+    } else {
+      ns.GetLink("vndk").AddSharedLib(
+          {Var("VNDK_SAMEPROCESS_LIBRARIES_PRODUCT"),
+           Var("VNDK_CORE_LIBRARIES_PRODUCT")});
+      if (android::linkerconfig::modules::IsVndkInSystemNamespace()) {
+        ns.GetLink("vndk_in_system")
+            .AddSharedLib(Var("VNDK_USING_CORE_VARIANT_LIBRARIES"));
+      }
     }
   }
   ns.AddRequires(ctx.GetProductRequireLibs());

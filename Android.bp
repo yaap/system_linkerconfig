@@ -153,7 +153,7 @@ cc_binary {
     },
 }
 
-cc_test {
+cc_test_host {
     name: "linkerconfig_modules_unittest",
     defaults: [ "linkerconfig_test_defaults" ],
     srcs: [
@@ -167,9 +167,12 @@ cc_test {
     data: [
         "modules/tests/data/linker.config.*",
     ],
+    test_options: {
+        unit_test: true,
+    },
 }
 
-cc_test {
+cc_test_host {
     name: "linkerconfig_backward_compatibility_test",
     defaults: [ "linkerconfig_test_defaults" ],
     srcs: [
@@ -179,9 +182,12 @@ cc_test {
         "linkerconfig_modules",
         "linkerconfig_contents",
     ],
+    test_options: {
+        unit_test: true,
+    },
 }
 
-cc_test {
+cc_test_host {
     name: "linkerconfig_generator_unittest",
     defaults: [ "linkerconfig_test_defaults" ],
     srcs: [
@@ -195,9 +201,12 @@ cc_test {
     data: [
         "generator/tests/data/*.txt",
     ],
+    test_options: {
+        unit_test: true,
+    },
 }
 
-cc_test {
+cc_test_host {
     name: "linkerconfig_contents_fulltest",
     defaults: [ "linkerconfig_test_defaults" ],
     // TODO(b/231993627): Reenable isolated:true by deleting the explicit disable below
@@ -213,6 +222,9 @@ cc_test {
         "linkerconfig_modules",
         "linkerconfig_contents",
     ],
+    test_options: {
+        unit_test: true,
+    },
 }
 
 prebuilt_etc {

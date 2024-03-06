@@ -15,8 +15,8 @@
  */
 #include "linkerconfig/stringutil.h"
 
-#include <set>
-#include <sstream>
+#include <type_traits>
+#include <unordered_set>
 #include <vector>
 
 #include <android-base/strings.h>
@@ -33,21 +33,31 @@ std::string TrimPrefix(const std::string& s, const std::string& prefix) {
 
 // merge a list of libs into a single value (concat with ":")
 std::string MergeLibs(const std::vector<std::string>& libs) {
-  std::set<std::string> seen;
-  std::ostringstream oss;
+  std::unordered_set<std::string_view> seen;
+  std::string out;
+  bool first = true;
   for (const auto& part : libs) {
-    std::istringstream iss(part);
-    std::string lib;
-    while (std::getline(iss, lib, ':')) {
+    const char* part_str = part.c_str();
+    const char* part_end = part.c_str() + part.size();
+    while (part_str != part_end) {
+      const void* end = memchr(part_str, ':', part_end - part_str);
+      const char* end_str = end ? static_cast<const char*>(end) : part_end;
+      std::string_view lib(part_str, end_str - part_str);
+      static_assert(
+          std::is_const_v<typeof(libs)>,
+          "libs needs to be const so we can use a string_view in seen");
       if (!lib.empty() && seen.insert(lib).second) {  // for a new lib
-        if (oss.tellp() > 0) {
-          oss << ':';
+        if (!first) {
+          out += ':';
         }
-        oss << lib;
+        out += lib;
+        first = false;
       }
+      if (end == nullptr) break;
+      part_str = end_str + 1;
     }
   }
-  return oss.str();
+  return out;
 }
 }  // namespace modules
 }  // namespace linkerconfig

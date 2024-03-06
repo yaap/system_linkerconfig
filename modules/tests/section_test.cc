@@ -23,6 +23,7 @@
 #include "linkerconfig/apex.h"
 #include "linkerconfig/basecontext.h"
 #include "linkerconfig/configwriter.h"
+#include "linkerconfig/variables.h"
 #include "modules_testbase.h"
 
 using namespace android::linkerconfig::modules;
@@ -181,6 +182,10 @@ TEST(linkerconfig_section, resolve_contraints) {
 
 TEST(linkerconfig_section, error_if_duplicate_providing) {
   BaseContext ctx;
+  // TODO(b/297821005) : remove vendor / product vndk version set up
+  android::linkerconfig::modules::Variables::AddValue("ro.vndk.version", "99");
+  android::linkerconfig::modules::Variables::AddValue("ro.product.vndk.version",
+                                                      "99");
   std::vector<Namespace> namespaces;
   Namespace& foo1 = namespaces.emplace_back("foo1");
   foo1.AddProvides(std::vector{"libfoo.so"});
@@ -242,11 +247,10 @@ TEST(linkerconfig_section, ignore_unmet_requirements) {
 TEST(linkerconfig_section, resolve_section_with_apex) {
   BaseContext ctx;
   ctx.SetApexModules(
-      {ApexInfo(
-           "foo", "", {"a.so"}, {"b.so"}, {}, {}, {}, true, true, false, false),
-       ApexInfo("bar", "", {"b.so"}, {}, {}, {}, {}, true, true, false, false),
+      {ApexInfo("foo", "", {"a.so"}, {"b.so"}, {}, {}, true, true, false, false),
+       ApexInfo("bar", "", {"b.so"}, {}, {}, {}, true, true, false, false),
        ApexInfo(
-           "baz", "", {"c.so"}, {"a.so"}, {}, {}, {}, true, true, false, false)});
+           "baz", "", {"c.so"}, {"a.so"}, {}, {}, true, true, false, false)});
   std::vector<Namespace> namespaces;
   Namespace& default_ns = namespaces.emplace_back("default");
   default_ns.AddRequires(std::vector{"a.so", "b.so"});
@@ -266,4 +270,31 @@ TEST(linkerconfig_section, resolve_section_with_apex) {
               ::testing::ContainerEq(
                   section.GetNamespace("foo")->GetLink("bar").GetSharedLibs()));
   EXPECT_EQ(nullptr, section.GetNamespace("baz"));
+}
+
+TEST(linkerconfig_section, resolve_link_modifiers) {
+  BaseContext ctx;
+  std::vector<Namespace> namespaces;
+  Namespace& default_ns = namespaces.emplace_back("default");
+  default_ns.AddRequires(std::vector{":foo", ":bar"});
+
+  LibProviders providers;
+  providers[":foo"].emplace_back(LibProvider{
+      "foo",
+      []() { return Namespace("foo"); },
+      AllowAllSharedLibs{},
+  });
+  providers[":bar"].emplace_back(LibProvider{
+      "bar",
+      []() { return Namespace("bar"); },
+      SharedLibs{{"libbar.so"}},
+  });
+
+  Section section("section", std::move(namespaces));
+  section.Resolve(ctx, providers);
+
+  EXPECT_TRUE(
+      section.GetNamespace("default")->GetLink("foo").IsAllSharedLibsAllowed());
+  EXPECT_THAT(section.GetNamespace("default")->GetLink("bar").GetSharedLibs(),
+              ::testing::ContainerEq(std::vector<std::string>{"libbar.so"}));
 }

@@ -26,6 +26,8 @@
 
 #include "linkerconfig/namespacebuilder.h"
 
+#include "linkerconfig/environment.h"
+
 #include <android-base/strings.h>
 
 using android::linkerconfig::modules::Namespace;
@@ -46,30 +48,21 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
 
   ns.AddPermittedPath("/odm/${LIB}");
   ns.AddPermittedPath("/vendor/${LIB}");
+  ns.AddPermittedPath("/vendor/odm/${LIB}");
   ns.AddPermittedPath("/system/vendor/${LIB}");
 
-  for (const auto& apex : ctx.GetApexModules()) {
-    for (const auto& contribution : apex.contributions) {
-      if (contribution.namespace_name == "sphal") {
-        for (const auto& rel_path : contribution.paths) {
-          std::string path = "/apex/" + apex.name + "/" + rel_path;
-          ns.AddSearchPath(path);
-          ns.AddPermittedPath(std::move(path));
-        }
-      }
-    }
-  }
-
-  if (ctx.IsApexBinaryConfig() && !ctx.IsVndkAvailable()) {
+  if (ctx.IsApexBinaryConfig() &&
+      !android::linkerconfig::modules::IsTreblelizedDevice()) {
     // If device is legacy, let Sphal libraries access to system lib path for
     // VNDK-SP libraries
     ns.AddSearchPath("/system/${LIB}");
     ns.AddPermittedPath("/system/${LIB}");
   }
 
+  AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
+
   if (ctx.IsApexBinaryConfig()) {
-    if (ctx.IsVndkAvailable()) {
-      AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
+    if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
       ns.AddRequires(std::vector{":vndksp"});
     }
   } else {
@@ -80,9 +73,10 @@ Namespace BuildSphalNamespace([[maybe_unused]] const Context& ctx) {
     if (ctx.IsSystemSection() || ctx.IsUnrestrictedSection()) {
       ns.GetLink("rs").AddSharedLib("libRS_internal.so");
     }
-    AddLlndkLibraries(ctx, &ns, VndkUserPartition::Vendor);
-    ns.GetLink("vndk").AddSharedLib(
-        Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR", ""));
+    if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+      ns.GetLink("vndk").AddSharedLib(
+          Var("VNDK_SAMEPROCESS_LIBRARIES_VENDOR", ""));
+    }
   }
 
   return ns;

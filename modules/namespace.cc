@@ -19,6 +19,7 @@
 #include <android-base/strings.h>
 
 #include "linkerconfig/apex.h"
+#include "linkerconfig/environment.h"
 #include "linkerconfig/log.h"
 
 using android::base::Result;
@@ -28,9 +29,10 @@ constexpr const char* kDataAsanPath = "/data/asan";
 
 Result<void> VerifyIfApexNamespaceContainsAllSharedLink(
     const android::linkerconfig::modules::Namespace& ns) {
-  auto apex_name = ns.GetApexSource();
+  auto apex = ns.GetApexSource();
   // If namespace is not from APEX there is no need to check this.
-  if (apex_name == "") {
+  // Vendor apexes are allowed to use 'allow_all_shared_libs'.
+  if (apex.name == "" || apex.in_vendor) {
     return {};
   }
 
@@ -55,8 +57,9 @@ namespace modules {
 void InitializeWithApex(Namespace& ns, const ApexInfo& apex_info) {
   ns.AddSearchPath(apex_info.path + "/${LIB}");
   if (apex_info.InVendor()) {
+    // Adding an additional subdir(hw) to make the migration easier because
+    // many vendor modules today are installed in ./hw subdir.
     ns.AddSearchPath(apex_info.path + "/${LIB}/hw");
-    ns.AddSearchPath(apex_info.path + "/${LIB}/egl");
   }
   ns.AddPermittedPath(apex_info.path + "/${LIB}");
   ns.AddPermittedPath("/system/${LIB}");
@@ -69,7 +72,13 @@ void InitializeWithApex(Namespace& ns, const ApexInfo& apex_info) {
   }
   ns.AddProvides(apex_info.provide_libs);
   ns.AddRequires(apex_info.require_libs);
-  ns.SetApexSource(apex_info.name);
+  // TODO(b/296491928) Vendor APEX should use its own libbinder_ndk when VNDK is
+  // deprecated.
+  if (apex_info.InVendor() &&
+      !android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+    ns.AddRequires(std::vector{"libbinder.so"});
+  }
+  ns.SetApexSource(ApexSource{apex_info.name, apex_info.InVendor()});
 }
 
 Link& Namespace::GetLink(const std::string& target_namespace) {
@@ -101,20 +110,26 @@ void Namespace::WriteConfig(ConfigWriter& writer) {
   writer.WriteVars(prefix + "permitted.paths", permitted_paths_);
   writer.WriteVars(prefix + "asan.search.paths", asan_search_paths_);
   writer.WriteVars(prefix + "asan.permitted.paths", asan_permitted_paths_);
-  writer.WriteVars(prefix + "hwasan.search.paths", hwasan_search_paths_);
-  writer.WriteVars(prefix + "hwasan.permitted.paths", hwasan_permitted_paths_);
+  writer.WriteVars(prefix + "hwasan.search.paths", search_paths_, "/hwasan");
+  writer.WriteVars(
+      prefix + "hwasan.permitted.paths", permitted_paths_, "/hwasan");
   writer.WriteVars(prefix + "allowed_libs", allowed_libs_);
 
   std::vector<std::string> link_list;
   link_list.reserve(links_.size());
   for (const auto& link : links_) {
     if (link.Empty()) continue;
+    if (link.To() == name_) {
+      LOG(WARNING) << "Ignore link to self namespace : " << name_;
+      continue;
+    }
     link_list.push_back(link.To());
   }
   if (!link_list.empty()) {
     writer.WriteLine(prefix + "links = " + android::base::Join(link_list, ","));
     for (const auto& link : links_) {
       if (link.Empty()) continue;
+      if (link.To() == name_) continue;
       link.WriteConfig(writer);
     }
   }
@@ -127,8 +142,6 @@ void Namespace::AddSearchPath(const std::string& path) {
     asan_search_paths_.push_back(CreateAsanPath(path));
   }
   asan_search_paths_.push_back(path);
-  hwasan_search_paths_.push_back(CreateHwasanPath(path));
-  hwasan_search_paths_.push_back(path);
 }
 
 void Namespace::AddPermittedPath(const std::string& path) {
@@ -138,8 +151,6 @@ void Namespace::AddPermittedPath(const std::string& path) {
     asan_permitted_paths_.push_back(CreateAsanPath(path));
   }
   asan_permitted_paths_.push_back(path);
-  hwasan_permitted_paths_.push_back(CreateHwasanPath(path));
-  hwasan_permitted_paths_.push_back(path);
 }
 
 void Namespace::AddAllowedLib(const std::string& path) {
@@ -156,10 +167,6 @@ bool Namespace::RequiresAsanPath(const std::string& path) {
 
 const std::string Namespace::CreateAsanPath(const std::string& path) {
   return kDataAsanPath + path;
-}
-
-const std::string Namespace::CreateHwasanPath(const std::string& path) {
-  return path + "/hwasan";
 }
 
 Result<void> Namespace::VerifyContents() {

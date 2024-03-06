@@ -60,7 +60,9 @@ const static struct option program_options[] = {
     {"root", required_argument, 0, 'r'},
     {"vndk", required_argument, 0, 'v'},
     {"product_vndk", required_argument, 0, 'p'},
+    {"deprecate_vndk", no_argument, 0, 'd'},
     {"recovery", no_argument, 0, 'y'},
+    {"treblelize", no_argument, 0, 'z'},
 #endif
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
@@ -73,6 +75,8 @@ struct ProgramArgs {
   std::string vndk_version;
   std::string product_vndk_version;
   bool is_recovery;
+  bool deprecate_vndk;
+  bool is_treblelized;
 };
 
 [[noreturn]] void PrintUsage(int status = EXIT_SUCCESS) {
@@ -84,6 +88,7 @@ struct ProgramArgs {
                " --vndk <vndk version>"
                " --product_vndk <product vndk version>"
                " --recovery"
+               " --treblelize"
 #endif
                " [--help]"
             << std::endl;
@@ -101,7 +106,7 @@ std::string RealPath(std::string_view path) {
 bool ParseArgs(int argc, char* argv[], ProgramArgs* args) {
   int parse_result;
   while ((parse_result = getopt_long(
-              argc, argv, "a:t:sr:v:ep:hyl", program_options, NULL)) != -1) {
+              argc, argv, "a:t:sr:v:ep:hzyl", program_options, NULL)) != -1) {
     switch (parse_result) {
       case 'a':
         args->target_apex = optarg;
@@ -120,6 +125,9 @@ bool ParseArgs(int argc, char* argv[], ProgramArgs* args) {
         break;
       case 'p':
         args->product_vndk_version = optarg;
+        break;
+      case 'z':
+        args->is_treblelized = true;
         break;
       case 'y':
         args->is_recovery = true;
@@ -147,6 +155,11 @@ void LoadVariables(const ProgramArgs& args) {
                                                       args.vndk_version);
   android::linkerconfig::modules::Variables::AddValue(
       "ro.product.vndk.version", args.product_vndk_version);
+
+  if (args.is_treblelized) {
+    android::linkerconfig::modules::Variables::AddValue("ro.treble.enabled",
+                                                        "true");
+  }
 #endif
   if (!args.is_recovery) {
     android::linkerconfig::generator::LoadVariables(args.root);
@@ -254,7 +267,7 @@ Configuration GetConfiguration(Context& ctx) {
     return android::linkerconfig::contents::CreateRecoveryConfiguration(ctx);
   }
 
-  if (android::linkerconfig::modules::IsLegacyDevice()) {
+  if (!android::linkerconfig::modules::IsTreblelizedDevice()) {
     return android::linkerconfig::contents::CreateLegacyConfiguration(ctx);
   }
 
@@ -391,7 +404,7 @@ int main(int argc, char* argv[]) {
     PrintUsage(EXIT_FAILURE);
   }
 
-  if (!android::linkerconfig::modules::IsLegacyDevice() &&
+  if (android::linkerconfig::modules::IsTreblelizedDevice() &&
       android::linkerconfig::modules::IsVndkLiteDevice()) {
     LOG(ERROR) << "Linkerconfig no longer supports VNDK-Lite configuration";
     exit(EXIT_FAILURE);

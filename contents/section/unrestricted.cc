@@ -38,9 +38,11 @@ Section BuildUnrestrictedSection(Context& ctx) {
   std::vector<Namespace> namespaces;
 
   namespaces.emplace_back(BuildUnrestrictedDefaultNamespace(ctx));
-  if (ctx.IsVndkAvailable()) {
+  if (android::linkerconfig::modules::IsTreblelizedDevice()) {
     namespaces.emplace_back(BuildSphalNamespace(ctx));
-    namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+    if (android::linkerconfig::modules::IsVendorVndkVersionDefined()) {
+      namespaces.emplace_back(BuildVndkNamespace(ctx, VndkUserPartition::Vendor));
+    }
     namespaces.emplace_back(BuildRsNamespace(ctx));
   }
 
